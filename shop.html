@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopFlow — Auto Repair Management</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0F1114;--surface:#181B20;--surface2:#1F2228;--surface3:#272B33;--border:#2A2E37;--border-light:#353A44;--text:#E8EAED;--text-dim:#8B919A;--text-muted:#5A6070;--accent:#F59E0B;--accent-hover:#FBBF24;--accent-dim:rgba(245,158,11,0.12);--green:#10B981;--green-dim:rgba(16,185,129,0.12);--red:#EF4444;--red-dim:rgba(239,68,68,0.12);--blue:#3B82F6;--blue-dim:rgba(59,130,246,0.12);--radius:10px;--radius-lg:14px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body.lang-ko{font-family:'Noto Sans KR','DM Sans',sans-serif}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+.app{display:flex;height:100vh}
+.sidebar{width:260px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-header{padding:24px 20px;border-bottom:1px solid var(--border)}
+.logo{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--accent);letter-spacing:-0.5px}
+.logo span{color:var(--text-dim);font-weight:400}
+.sidebar-nav{padding:12px 10px;flex:1}
+.nav-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);padding:16px 12px 8px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .15s;font-size:14px;color:var(--text-dim);font-weight:500}
+.nav-item:hover{background:var(--surface2);color:var(--text)}.nav-item.active{background:var(--accent-dim);color:var(--accent)}
+.nav-item svg{width:18px;height:18px;flex-shrink:0}
+.lang-toggle{margin:8px 10px 4px;display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.lang-btn{flex:1;padding:9px 0;text-align:center;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text-dim);border:none;background:transparent;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+.lang-btn:first-child{border-right:1px solid var(--border)}.lang-btn.active{background:var(--accent-dim);color:var(--accent)}.lang-btn:hover:not(.active){color:var(--text)}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.avatar{width:36px;height:36px;background:var(--accent-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--accent)}
+.user-info{flex:1}.user-name{font-size:13px;font-weight:600}.user-role{font-size:11px;color:var(--text-muted)}
+.main{flex:1;overflow-y:auto}
+.main-header{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(15,17,20,0.92);backdrop-filter:blur(12px);z-index:10}
+.page-title{font-size:22px;font-weight:700}.page-subtitle{font-size:13px;color:var(--text-muted);margin-top:2px}
+.header-actions{display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#000}.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,158,11,0.25)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--surface3);border-color:var(--border-light)}
+.btn-ghost{background:transparent;color:var(--text-dim)}.btn-ghost:hover{color:var(--text);background:var(--surface2)}
+.btn-success{background:var(--green);color:#fff}.btn-success:hover{filter:brightness(1.1)}
+.btn svg{width:16px;height:16px}
+.content{padding:24px 32px}
+.page{display:none}.page.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.stat-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:8px}
+.stat-value{font-family:'Space Mono',monospace;font-size:28px;font-weight:700}
+.stat-change{font-size:12px;margin-top:6px;font-weight:600}.stat-change.up{color:var(--green)}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:15px;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:12px 20px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:700;border-bottom:1px solid var(--border);background:var(--surface2)}
+td{padding:14px 20px;font-size:13px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}tr:hover td{background:rgba(255,255,255,0.015)}
+.badge{display:inline-flex;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.badge-pending{background:var(--accent-dim);color:var(--accent)}.badge-approved{background:var(--green-dim);color:var(--green)}.badge-paid{background:var(--blue-dim);color:var(--blue)}.badge-declined{background:var(--red-dim);color:var(--red)}
+.quote-layout{display:grid;grid-template-columns:1fr 380px;gap:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:20px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;transition:border-color .15s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.form-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238B919A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+option{background:var(--surface2);color:var(--text)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-textarea{resize:vertical;min-height:80px}
+.line-items{margin-top:16px}
+.line-item{display:grid;grid-template-columns:1fr 80px 90px 90px 40px;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);animation:slideIn .2s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.line-item .form-input{padding:8px 10px;font-size:12px}
+.line-item-header{display:grid;grid-template-columns:1fr 80px 90px 90px 40px;gap:10px;padding-bottom:8px}
+.line-item-header span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted)}
+.remove-btn{width:28px;height:28px;border-radius:6px;background:var(--red-dim);border:none;color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:16px}
+.remove-btn:hover{background:rgba(239,68,68,0.25)}
+.upsell-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:12px}
+.upsell-card:hover{border-color:var(--accent);background:var(--accent-dim)}.upsell-card.selected{border-color:var(--accent);background:var(--accent-dim)}
+.upsell-check{width:20px;height:20px;border:2px solid var(--border-light);border-radius:5px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.upsell-card.selected .upsell-check{background:var(--accent);border-color:var(--accent)}
+.upsell-card.selected .upsell-check::after{content:'✓';font-size:12px;color:#000;font-weight:700}
+.upsell-name{font-size:13px;font-weight:600}.upsell-desc{font-size:11px;color:var(--text-muted);margin-top:2px}
+.upsell-price{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);margin-top:4px}
+.summary-line{display:flex;justify-content:space-between;padding:8px 0;font-size:13px}
+.summary-line.total{border-top:2px solid var(--border-light);margin-top:8px;padding-top:12px;font-size:18px;font-weight:700;font-family:'Space Mono',monospace}
+.summary-line .label{color:var(--text-dim)}.summary-line.total .label{color:var(--text)}
+.labor-search{position:relative;margin-bottom:16px}.labor-search .form-input{padding-left:36px}
+.labor-search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-muted)}
+.labor-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.labor-item:hover{border-color:var(--accent)}
+.labor-item-name{font-size:13px;font-weight:600}.labor-item-cat{font-size:11px;color:var(--text-muted);margin-top:2px}
+.labor-item-hours{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);text-align:right}
+.labor-item-rate{font-size:11px;color:var(--text-muted)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.active{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:520px;max-height:85vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.5);animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:8px;background:var(--surface2);border:none;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px}
+.modal-close:hover{background:var(--surface3);color:var(--text)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.payment-total{text-align:center;padding:20px;background:var(--surface2);border-radius:var(--radius);margin-bottom:20px}
+.payment-total-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.payment-total-amount{font-family:'Space Mono',monospace;font-size:36px;font-weight:700;color:var(--accent);margin-top:4px}
+.payment-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.payment-method{padding:16px;background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;text-align:center;transition:all .15s}
+.payment-method:hover{border-color:var(--border-light)}.payment-method.selected{border-color:var(--accent);background:var(--accent-dim)}
+.payment-method-icon{font-size:24px;margin-bottom:6px}.payment-method-name{font-size:13px;font-weight:600}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:14px 20px;border-radius:10px;font-weight:600;font-size:14px;z-index:200;box-shadow:0 8px 32px rgba(16,185,129,0.3);transform:translateY(100px);opacity:0;transition:all .3s ease}
+.toast.show{transform:translateY(0);opacity:1}
+@media(max-width:900px){.sidebar{display:none}.stats-grid{grid-template-columns:repeat(2,1fr)}.quote-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header"><div class="logo">ShopFlow<span>.io</span></div></div>
+    <div class="sidebar-nav">
+      <div class="lang-toggle">
+        <button class="lang-btn active" id="langEn" onclick="setLang('en')"><span class="lang-flag">🇺🇸</span> English</button>
+        <button class="lang-btn" id="langKo" onclick="setLang('ko')"><span class="lang-flag">🇰🇷</span> 한국어</button>
+      </div>
+      <div class="nav-section-label" data-i18n="navMain"></div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span data-i18n="navDashboard"></span>
+      </div>
+      <div class="nav-item" onclick="showPage('quotes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span data-i18n="navQuotes"></span>
+      </div>
+      <div class="nav-item" onclick="showPage('newquote')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <span data-i18n="navNewQuote"></span>
+      </div>
+      <div class="nav-section-label" data-i18n="navReference"></div>
+      <div class="nav-item" onclick="showPage('laborguide')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span data-i18n="navLaborGuide"></span>
+      </div>
+      <div class="nav-item" onclick="showPage('customers')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span data-i18n="navCustomers"></span>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="avatar">MJ</div>
+      <div class="user-info"><div class="user-name">Mike Jr.</div><div class="user-role" data-i18n="roleAdvisor"></div></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="main-header">
+        <div><div class="page-title" data-i18n="dashTitle"></div><div class="page-subtitle" data-i18n="dashSub"></div></div>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="showPage('newquote')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span data-i18n="btnNewQuote"></span>
+          </button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label" data-i18n="statRevenue"></div><div class="stat-value">$4,280</div><div class="stat-change up" data-i18n="statRevChg"></div></div>
+          <div class="stat-card"><div class="stat-label" data-i18n="statOpen"></div><div class="stat-value">7</div><div class="stat-change" data-i18n="statPending"></div></div>
+          <div class="stat-card"><div class="stat-label" data-i18n="statJobs"></div><div class="stat-value">4</div><div class="stat-change" data-i18n="statHrs"></div></div>
+          <div class="stat-card"><div class="stat-label" data-i18n="statAvg"></div><div class="stat-value">$612</div><div class="stat-change up" data-i18n="statAvgChg"></div></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title" data-i18n="recentQuotes"></div><button class="btn btn-ghost" onclick="showPage('quotes')"><span data-i18n="viewAll"></span></button></div>
+          <table><thead><tr><th data-i18n="thQuote"></th><th data-i18n="thCustomer"></th><th data-i18n="thVehicle"></th><th data-i18n="thService"></th><th data-i18n="thTotal"></th><th data-i18n="thStatus"></th><th></th></tr></thead><tbody id="dashboardQuotes"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUOTES LIST -->
+    <div class="page" id="page-quotes">
+      <div class="main-header">
+        <div><div class="page-title" data-i18n="allQTitle"></div><div class="page-subtitle" data-i18n="allQSub"></div></div>
+        <div class="header-actions"><button class="btn btn-primary" onclick="showPage('newquote')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="btnNewQuote"></span></button></div>
+      </div>
+      <div class="content">
+        <div class="table-wrap"><table><thead><tr><th data-i18n="thQuote"></th><th data-i18n="thDate"></th><th data-i18n="thCustomer"></th><th data-i18n="thVehicle"></th><th data-i18n="thServices"></th><th data-i18n="thTotal"></th><th data-i18n="thStatus"></th><th></th></tr></thead><tbody id="allQuotes"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- NEW QUOTE BUILDER -->
+    <div class="page" id="page-newquote">
+      <div class="main-header">
+        <div><div class="page-title" data-i18n="buildTitle"></div><div class="page-subtitle" data-i18n="buildSub"></div></div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" onclick="showPage('dashboard')"><span data-i18n="btnCancel"></span></button>
+          <button class="btn btn-primary" onclick="saveQuote()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg><span data-i18n="btnSave"></span></button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="quote-layout">
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="card-header" data-i18n="cardCustVeh"></div>
+              <div class="card-body">
+                <div class="form-row"><div class="form-group"><label class="form-label" data-i18n="lblName"></label><input type="text" class="form-input" id="custName" data-ph="phName"></div><div class="form-group"><label class="form-label" data-i18n="lblPhone"></label><input type="text" class="form-input" id="custPhone" placeholder="(555) 123-4567"></div></div>
+                <div class="form-group"><label class="form-label" data-i18n="lblEmail"></label><input type="email" class="form-input" id="custEmail" data-ph="phEmail"></div>
+                <div class="form-row"><div class="form-group"><label class="form-label" data-i18n="lblYear"></label><input type="text" class="form-input" id="vehYear" placeholder="2021"></div><div class="form-group"><label class="form-label" data-i18n="lblMake"></label><input type="text" class="form-input" id="vehMake" data-ph="phMake"></div></div>
+                <div class="form-row"><div class="form-group"><label class="form-label" data-i18n="lblModel"></label><input type="text" class="form-input" id="vehModel" data-ph="phModel"></div><div class="form-group"><label class="form-label" data-i18n="lblMileage"></label><input type="text" class="form-input" id="vehMileage" placeholder="45,000"></div></div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="card-header"><span data-i18n="cardService"></span><button class="btn btn-secondary" onclick="addLaborFromGuide()" style="font-size:12px;padding:6px 12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span data-i18n="btnFromGuide"></span></button></div>
+              <div class="card-body">
+                <div class="line-item-header"><span data-i18n="colDesc"></span><span data-i18n="colHrs"></span><span data-i18n="colRate"></span><span data-i18n="colTotal"></span><span></span></div>
+                <div class="line-items" id="laborLines"></div>
+                <button class="btn btn-ghost" onclick="addLaborLine()" style="margin-top:12px;width:100%;justify-content:center"><span data-i18n="btnAddLine"></span></button>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="card-header" data-i18n="cardParts"></div>
+              <div class="card-body">
+                <div class="line-item-header"><span data-i18n="colPart"></span><span data-i18n="colQty"></span><span data-i18n="colUnit"></span><span data-i18n="colTotal"></span><span></span></div>
+                <div class="line-items" id="partsLines"></div>
+                <button class="btn btn-ghost" onclick="addPartLine()" style="margin-top:12px;width:100%;justify-content:center"><span data-i18n="btnAddPart"></span></button>
+              </div>
+            </div>
+            <div class="card"><div class="card-header" data-i18n="cardNotes"></div><div class="card-body"><textarea class="form-textarea" id="quoteNotes" data-ph="phNotes"></textarea></div></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:20px"><div class="card-header"><span data-i18n="cardUpsells"></span><span style="font-size:11px;color:var(--green);font-weight:600">💡 Smart</span></div><div class="card-body" id="upsellContainer"></div></div>
+            <div class="card" style="position:sticky;top:90px">
+              <div class="card-header" data-i18n="cardSummary"></div>
+              <div class="card-body">
+                <div class="summary-line"><span class="label" data-i18n="sumLabor"></span><span id="sumLabor">$0.00</span></div>
+                <div class="summary-line"><span class="label" data-i18n="sumParts"></span><span id="sumParts">$0.00</span></div>
+                <div class="summary-line"><span class="label" data-i18n="sumUpsells"></span><span id="sumUpsells">$0.00</span></div>
+                <div class="summary-line"><span class="label" data-i18n="sumSupply"></span><span id="sumSupplies">$0.00</span></div>
+                <div class="summary-line"><span class="label" data-i18n="sumTax"></span><span id="sumTax">$0.00</span></div>
+                <div class="summary-line total"><span class="label" data-i18n="sumTotal"></span><span id="sumTotal">$0.00</span></div>
+                <div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-primary" onclick="saveQuote()" style="flex:1;justify-content:center"><span data-i18n="btnSave"></span></button><button class="btn btn-success" onclick="openPayment()" style="flex:1;justify-content:center"><span data-i18n="btnCollect"></span></button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LABOR GUIDE -->
+    <div class="page" id="page-laborguide">
+      <div class="main-header"><div><div class="page-title" data-i18n="lgTitle"></div><div class="page-subtitle" data-i18n="lgSub"></div></div></div>
+      <div class="content"><div class="card"><div class="card-body">
+        <div class="labor-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" class="form-input" id="laborSearchInput" data-ph="phSearchSvc" oninput="filterLaborGuide()"></div>
+        <div class="form-group"><label class="form-label" data-i18n="lblCatFilter"></label><select class="form-select" id="laborCatFilter" onchange="filterLaborGuide()"><option value="" data-i18n="catAll"></option><option value="Brakes" data-i18n="catBrakes"></option><option value="Engine" data-i18n="catEngine"></option><option value="Tires" data-i18n="catTires"></option><option value="Suspension" data-i18n="catSuspension"></option><option value="Electrical" data-i18n="catElectrical"></option><option value="Maintenance" data-i18n="catMaint"></option><option value="Transmission" data-i18n="catTrans"></option><option value="Cooling" data-i18n="catCooling"></option><option value="Exhaust" data-i18n="catExhaust"></option></select></div>
+        <div id="laborGuideList" style="margin-top:16px"></div>
+      </div></div></div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="page" id="page-customers">
+      <div class="main-header"><div><div class="page-title" data-i18n="custTitle"></div><div class="page-subtitle" data-i18n="custSub"></div></div></div>
+      <div class="content"><div class="table-wrap"><table><thead><tr><th data-i18n="thName"></th><th data-i18n="thPhone"></th><th data-i18n="thEmail2"></th><th data-i18n="thVehicles"></th><th data-i18n="thSpent"></th><th data-i18n="thVisit"></th></tr></thead><tbody>
+        <tr><td style="font-weight:600">Sarah Johnson</td><td>(555) 234-5678</td><td>sarah.j@email.com</td><td>2019 Honda Accord</td><td style="font-family:'Space Mono';font-weight:700">$2,340</td><td>Feb 14, 2026</td></tr>
+        <tr><td style="font-weight:600">Mike Thompson</td><td>(555) 345-6789</td><td>miket@email.com</td><td>2022 Ford F-150</td><td style="font-family:'Space Mono';font-weight:700">$4,815</td><td>Feb 12, 2026</td></tr>
+        <tr><td style="font-weight:600">Lisa Chen</td><td>(555) 456-7890</td><td>lisa.chen@email.com</td><td>2020 Toyota RAV4</td><td style="font-family:'Space Mono';font-weight:700">$1,670</td><td>Feb 10, 2026</td></tr>
+        <tr><td style="font-weight:600">David Martinez</td><td>(555) 567-8901</td><td>dmartinez@email.com</td><td>2018 Chevy Silverado</td><td style="font-family:'Space Mono';font-weight:700">$6,290</td><td>Feb 8, 2026</td></tr>
+        <tr><td style="font-weight:600">Karen Williams</td><td>(555) 678-9012</td><td>kwilliams@email.com</td><td>2021 BMW X3</td><td style="font-family:'Space Mono';font-weight:700">$3,120</td><td>Feb 5, 2026</td></tr>
+      </tbody></table></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="laborModal"><div class="modal"><div class="modal-header"><div class="modal-title" data-i18n="modalLabor"></div><button class="modal-close" onclick="closeLaborModal()">×</button></div><div class="modal-body"><div class="labor-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" class="form-input" id="modalLaborSearch" data-ph="phSearch" oninput="filterModalLabor()"></div><div id="modalLaborList"></div></div></div></div>
+
+<div class="modal-overlay" id="paymentModal"><div class="modal"><div class="modal-header"><div class="modal-title" data-i18n="modalPay"></div><button class="modal-close" onclick="closePayment()">×</button></div><div class="modal-body">
+  <div class="payment-total"><div class="payment-total-label" data-i18n="amtDue"></div><div class="payment-total-amount" id="paymentAmount">$0.00</div></div>
+  <label class="form-label" data-i18n="lblPayMethod"></label>
+  <div class="payment-methods">
+    <div class="payment-method selected" onclick="selectPayment(this)"><div class="payment-method-icon">💳</div><div class="payment-method-name" data-i18n="payCard"></div></div>
+    <div class="payment-method" onclick="selectPayment(this)"><div class="payment-method-icon">💵</div><div class="payment-method-name" data-i18n="payCash"></div></div>
+    <div class="payment-method" onclick="selectPayment(this)"><div class="payment-method-icon">🏦</div><div class="payment-method-name" data-i18n="payCheck"></div></div>
+    <div class="payment-method" onclick="selectPayment(this)"><div class="payment-method-icon">📋</div><div class="payment-method-name" data-i18n="payFin"></div></div>
+  </div>
+  <div class="form-group"><label class="form-label" data-i18n="lblRef"></label><input type="text" class="form-input" id="payRef" data-ph="phRef"></div>
+</div><div class="modal-footer"><button class="btn btn-secondary" onclick="closePayment()"><span data-i18n="btnCancel"></span></button><button class="btn btn-success" onclick="processPayment()"><span data-i18n="btnProcess"></span></button></div></div></div>
+
+<div class="toast" id="toast"></div>
+<script>
+// ===================== i18n SYSTEM =====================
+let currentLang = 'en';
+
+const L = {
+en: {
+  navMain:"Main",navReference:"Reference",navDashboard:"Dashboard",navQuotes:"Quotes",navNewQuote:"New Quote",navLaborGuide:"Labor Guide",navCustomers:"Customers",
+  roleAdvisor:"Service Advisor",
+  dashTitle:"Dashboard",dashSub:"Today's overview — Monday, Feb 16",
+  statRevenue:"Today's Revenue",statRevChg:"↑ 12% vs last Mon",statOpen:"Open Quotes",statPending:"3 pending approval",
+  statJobs:"Jobs in Progress",statHrs:"~6.5 labor hrs",statAvg:"Avg Ticket",statAvgChg:"↑ 8% this week",
+  recentQuotes:"Recent Quotes",viewAll:"View All →",
+  thQuote:"Quote #",thCustomer:"Customer",thVehicle:"Vehicle",thService:"Service",thServices:"Services",thTotal:"Total",thStatus:"Status",thDate:"Date",
+  thName:"Name",thPhone:"Phone",thEmail2:"Email",thVehicles:"Vehicles",thSpent:"Total Spent",thVisit:"Last Visit",
+  btnNewQuote:"New Quote",btnSave:"Save Quote",btnCancel:"Cancel",btnFromGuide:"Add from Labor Guide",
+  btnAddLine:"+ Add Service Line",btnAddPart:"+ Add Part",btnCollect:"Collect $",btnProcess:"Process Payment",
+  btnApprove:"Approve",btnCollectShort:"Collect",
+  allQTitle:"All Quotes",allQSub:"Manage and track all customer quotes",
+  buildTitle:"Build Quote",buildSub:"Create a new service quote with labor times and parts",
+  cardCustVeh:"Customer & Vehicle Info",cardService:"Service Lines",cardParts:"Parts & Materials",
+  cardNotes:"Notes",cardUpsells:"Suggested Upsells",cardSummary:"Quote Summary",
+  upsellHint:"Based on vehicle info & services, we recommend:",
+  lblName:"Customer Name",lblPhone:"Phone",lblEmail:"Email",lblYear:"Year",lblMake:"Make",lblModel:"Model",lblMileage:"Mileage",
+  lblCatFilter:"Filter by Category",lblPayMethod:"Payment Method",lblRef:"Reference / Last 4",
+  colDesc:"Service / Description",colHrs:"Std Hrs",colRate:"Rate/Hr",colTotal:"Total",
+  colPart:"Part Name",colQty:"Qty",colUnit:"Unit Price",
+  sumLabor:"Labor",sumParts:"Parts",sumUpsells:"Upsells",sumSupply:"Shop Supplies (3%)",sumTax:"Tax (8.25%)",sumTotal:"Total",
+  lgTitle:"Labor Time Guide",lgSub:"Standard labor times based on industry flat-rate manuals",
+  modalLabor:"Select from Labor Guide",
+  custTitle:"Customers",custSub:"Customer database and vehicle history",
+  modalPay:"Collect Payment",amtDue:"Amount Due",
+  payCard:"Card",payCash:"Cash",payCheck:"Check",payFin:"Financing",
+  catAll:"All Categories",catBrakes:"Brakes",catEngine:"Engine",catTires:"Tires",catSuspension:"Suspension",
+  catElectrical:"Electrical",catMaint:"Maintenance",catTrans:"Transmission",catCooling:"Cooling",catExhaust:"Exhaust",
+  phName:"John Smith",phEmail:"john@email.com",phMake:"Toyota",phModel:"Camry",
+  phNotes:"Additional notes, recommendations, or observations...",
+  phSearchSvc:"Search services... (e.g. brake pads, oil change, timing belt)",
+  phSearch:"Search...",phRef:"Optional reference number",
+  sPending:"Pending",sApproved:"Approved",sPaid:"Paid",sDeclined:"Declined",
+  hrs:"hrs",free:"FREE",walkin:"Walk-in Customer",genSvc:"General Service",
+  tSaved:"Quote {id} saved!",tApproved:"Quote approved!",tAdded:"Added: {n}",tAddedQ:"Added to quote: {n}",tPay:"Payment processed successfully!"
+},
+ko: {
+  navMain:"메인",navReference:"참고자료",navDashboard:"대시보드",navQuotes:"견적서",navNewQuote:"새 견적",navLaborGuide:"작업 시간표",navCustomers:"고객",
+  roleAdvisor:"서비스 어드바이저",
+  dashTitle:"대시보드",dashSub:"오늘의 현황 — 2월 16일 월요일",
+  statRevenue:"오늘 매출",statRevChg:"↑ 지난 월요일 대비 12%",statOpen:"미결 견적",statPending:"승인 대기 3건",
+  statJobs:"진행 중 작업",statHrs:"약 6.5 작업시간",statAvg:"평균 단가",statAvgChg:"↑ 이번 주 8%",
+  recentQuotes:"최근 견적",viewAll:"전체 보기 →",
+  thQuote:"견적번호",thCustomer:"고객",thVehicle:"차량",thService:"서비스",thServices:"서비스",thTotal:"합계",thStatus:"상태",thDate:"날짜",
+  thName:"이름",thPhone:"전화번호",thEmail2:"이메일",thVehicles:"차량",thSpent:"총 지출",thVisit:"마지막 방문",
+  btnNewQuote:"새 견적",btnSave:"견적 저장",btnCancel:"취소",btnFromGuide:"작업 시간표에서 추가",
+  btnAddLine:"+ 서비스 항목 추가",btnAddPart:"+ 부품 추가",btnCollect:"결제",btnProcess:"결제 처리",
+  btnApprove:"승인",btnCollectShort:"결제",
+  allQTitle:"전체 견적",allQSub:"모든 고객 견적을 관리하고 추적하세요",
+  buildTitle:"견적 작성",buildSub:"작업 시간과 부품을 포함한 새 서비스 견적을 작성하세요",
+  cardCustVeh:"고객 & 차량 정보",cardService:"서비스 항목",cardParts:"부품 & 자재",
+  cardNotes:"메모",cardUpsells:"추천 추가 서비스",cardSummary:"견적 요약",
+  upsellHint:"차량 정보 및 서비스를 기반으로 추천합니다:",
+  lblName:"고객명",lblPhone:"전화번호",lblEmail:"이메일",lblYear:"연식",lblMake:"제조사",lblModel:"모델",lblMileage:"주행거리",
+  lblCatFilter:"카테고리 필터",lblPayMethod:"결제 방법",lblRef:"참조번호 / 카드 끝 4자리",
+  colDesc:"서비스 / 설명",colHrs:"기준시간",colRate:"시간당",colTotal:"합계",
+  colPart:"부품명",colQty:"수량",colUnit:"단가",
+  sumLabor:"공임",sumParts:"부품",sumUpsells:"추가 서비스",sumSupply:"소모품비 (3%)",sumTax:"세금 (8.25%)",sumTotal:"합계",
+  lgTitle:"작업 시간 안내",lgSub:"업계 표준 정률 작업 시간 기준",
+  modalLabor:"작업 시간표에서 선택",
+  custTitle:"고객 관리",custSub:"고객 데이터베이스 및 차량 이력",
+  modalPay:"결제 수금",amtDue:"결제 금액",
+  payCard:"카드",payCash:"현금",payCheck:"수표",payFin:"할부",
+  catAll:"전체 카테고리",catBrakes:"브레이크",catEngine:"엔진",catTires:"타이어",catSuspension:"서스펜션",
+  catElectrical:"전기",catMaint:"정비",catTrans:"변속기",catCooling:"냉각",catExhaust:"배기",
+  phName:"홍길동",phEmail:"hong@email.com",phMake:"현대",phModel:"소나타",
+  phNotes:"추가 메모, 권장사항, 또는 관찰 사항...",
+  phSearchSvc:"서비스 검색... (예: 브레이크 패드, 오일 교환, 타이밍 벨트)",
+  phSearch:"검색...",phRef:"참조번호 (선택사항)",
+  sPending:"대기",sApproved:"승인",sPaid:"결제완료",sDeclined:"거절",
+  hrs:"시간",free:"무료",walkin:"방문 고객",genSvc:"일반 서비스",
+  tSaved:"견적 {id} 저장 완료!",tApproved:"견적 승인 완료!",tAdded:"추가됨: {n}",tAddedQ:"견적에 추가됨: {n}",tPay:"결제가 성공적으로 처리되었습니다!"
+}
+};
+
+// Korean labor names
+const LK = {
+"Oil Change — Conventional":"오일 교환 — 일반","Oil Change — Full Synthetic":"오일 교환 — 완전합성",
+"Brake Pads — Front (per axle)":"브레이크 패드 — 앞 (축당)","Brake Pads — Rear (per axle)":"브레이크 패드 — 뒤 (축당)",
+"Brake Pads + Rotors — Front":"브레이크 패드 + 로터 — 앞","Brake Pads + Rotors — Rear":"브레이크 패드 + 로터 — 뒤",
+"Brake Fluid Flush":"브레이크 오일 교환","Tire Mount & Balance (per tire)":"타이어 장착 & 밸런스 (타이어당)",
+"Tire Rotation":"타이어 로테이션","4-Wheel Alignment":"4륜 얼라인먼트","Flat Tire Repair / Plug":"타이어 펑크 수리",
+"Spark Plug Replacement (4-cyl)":"점화 플러그 교체 (4기통)","Spark Plug Replacement (6-cyl)":"점화 플러그 교체 (6기통)",
+"Timing Belt Replacement":"타이밍 벨트 교체","Serpentine Belt Replacement":"보조벨트 교체",
+"Water Pump Replacement":"워터 펌프 교체","Radiator Replacement":"라디에이터 교체","Coolant Flush":"냉각수 교환",
+"Thermostat Replacement":"서모스탯 교체","Strut Replacement — Front (pair)":"스트럿 교체 — 앞 (쌍)",
+"Strut Replacement — Rear (pair)":"스트럿 교체 — 뒤 (쌍)","Ball Joint Replacement":"볼 조인트 교체",
+"Tie Rod End Replacement":"타이로드 엔드 교체","Alternator Replacement":"알터네이터 교체",
+"Battery Replacement":"배터리 교체","Starter Replacement":"스타터 모터 교체",
+"Headlight Bulb Replacement":"헤드라이트 전구 교체","Transmission Fluid Change":"변속기 오일 교환",
+"Clutch Replacement":"클러치 교체","CV Axle Replacement":"CV 액슬 교체",
+"Exhaust Manifold Gasket":"배기 매니폴드 가스켓","Catalytic Converter Replacement":"촉매 변환기 교체",
+"Muffler Replacement":"머플러 교체","A/C Recharge":"에어컨 충전",
+"Cabin Air Filter Replacement":"실내 에어 필터 교체","Engine Air Filter Replacement":"엔진 에어 필터 교체",
+"Power Steering Fluid Flush":"파워 스티어링 오일 교환","Fuel Filter Replacement":"연료 필터 교체",
+"Diagnostic Scan / Inspection":"진단 스캔 / 점검"
+};
+
+// Korean category names
+const CK = {"Brakes":"브레이크","Engine":"엔진","Tires":"타이어","Suspension":"서스펜션","Electrical":"전기","Maintenance":"정비","Transmission":"변속기","Cooling":"냉각","Exhaust":"배기"};
+
+// Korean upsell names and descriptions
+const UK = {
+"Synthetic upgrade":["합성오일 업그레이드","완전합성 오일로 업그레이드"],"Air filter":["에어 필터","엔진 에어 필터 교체"],
+"Cabin filter":["실내 필터","실내 에어 필터 교체"],"Rotor resurface":["로터 연마","축당 로터 연마"],
+"Brake fluid flush":["브레이크 오일 교환","브레이크 오일 전량 교환"],"Caliper service":["캘리퍼 서비스","캘리퍼 청소 및 윤활"],
+"Alignment":["얼라인먼트","4륜 컴퓨터 얼라인먼트"],"TPMS service":["TPMS 서비스","타이어 공기압 센서 리셋"],
+"Alignment check":["얼라인먼트 점검","무료 얼라인먼트 점검"],"Tire pressure check":["타이어 공기압 점검","전 타이어 공기압 점검 및 조정"],
+"Tie rod replacement":["타이로드 교체","좌우 1개, 이너 또는 아우터"],"Suspension inspection":["서스펜션 점검","서스펜션 전체 점검"],
+"Ignition coils":["점화 코일","점화 코일 교체 (개당)"],"Fuel system cleaning":["연료 시스템 청소","연료 인젝터 클리닝 서비스"],
+"Water pump":["워터 펌프","타이밍 벨트와 함께 워터 펌프 교체"],"Tensioner kit":["텐셔너 키트","벨트 텐셔너 및 아이들러 풀리"],
+"Belt tensioner":["벨트 텐셔너","자동 벨트 텐셔너"],"Idler pulley":["아이들러 풀리","보조벨트 아이들러 풀리"],
+"Coolant flush":["냉각수 교환","냉각 시스템 전량 교환"],"Thermostat":["서모스탯","서모스탯 교체"],
+"Hoses":["호스","상/하부 라디에이터 호스"],"Radiator cap":["라디에이터 캡","압력 캡 교체"],
+"Strut mounts":["스트럿 마운트","스트럿 마운트 베어링 (쌍)"],"Battery test":["배터리 테스트","배터리 부하 테스트"],
+"Belt inspection":["벨트 점검","전체 구동 벨트 점검"],"Terminal cleaning":["단자 청소","배터리 단자 청소"],
+"Alternator test":["알터네이터 테스트","알터네이터 출력 테스트"],"Filter replacement":["필터 교체","변속기 필터"],
+"Pan gasket":["팬 가스켓","변속기 팬 가스켓"],"Flywheel resurface":["플라이휠 연마","플라이휠 면 연마"],
+"Throw-out bearing":["릴리즈 베어링","클러치 릴리즈 베어링"],"O2 sensor":["산소 센서","산소 센서 교체"],
+"O2 sensors":["산소 센서 (상/하류)","상류 및 하류 센서"],"Exhaust hangers":["배기 행거","고무 행거 교체"],
+"Tail pipe":["테일 파이프","테일 파이프 교체"],"Lens restoration":["헤드라이트 복원","헤드라이트 렌즈 폴리싱 & 실링"],
+"Compressor inspection":["컴프레서 점검","에어컨 컴프레서 점검"]
+};
+
+function t(k,r={}){let s=L[currentLang]?.[k]||L.en[k]||k;for(const[a,b]of Object.entries(r))s=s.replace('{'+a+'}',b);return s}
+function ln(n){return currentLang==='ko'?(LK[n]||n):n}
+function cn(c){return currentLang==='ko'?(CK[c]||c):c}
+function un(n){return currentLang==='ko'?(UK[n]?.[0]||n):n}
+function ud(n,fb){return currentLang==='ko'?(UK[n]?.[1]||fb):fb}
+function st(s){const m={pending:'sPending',approved:'sApproved',paid:'sPaid',declined:'sDeclined'};return t(m[s]||s)}
+
+function setLang(lang){
+  currentLang=lang;
+  document.body.classList.toggle('lang-ko',lang==='ko');
+  document.getElementById('langEn').classList.toggle('active',lang==='en');
+  document.getElementById('langKo').classList.toggle('active',lang==='ko');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');const v=L[lang]?.[k];if(v)el.textContent=v;});
+  document.querySelectorAll('[data-ph]').forEach(el=>{const k=el.getAttribute('data-ph');const v=L[lang]?.[k];if(v)el.placeholder=v;});
+  renderQuotes();renderLaborGuide();refreshUpsells();renderLaborLines();renderPartLines();
+}
+
+// ===================== DATA =====================
+const LABOR_RATE=135;
+
+const laborGuide=[
+{name:"Oil Change — Conventional",cat:"Maintenance",hours:0.5,upsells:["Synthetic upgrade","Air filter"]},
+{name:"Oil Change — Full Synthetic",cat:"Maintenance",hours:0.5,upsells:["Air filter","Cabin filter"]},
+{name:"Brake Pads — Front (per axle)",cat:"Brakes",hours:1.0,upsells:["Rotor resurface","Brake fluid flush"]},
+{name:"Brake Pads — Rear (per axle)",cat:"Brakes",hours:1.0,upsells:["Rotor resurface","Brake fluid flush"]},
+{name:"Brake Pads + Rotors — Front",cat:"Brakes",hours:1.5,upsells:["Brake fluid flush","Caliper service"]},
+{name:"Brake Pads + Rotors — Rear",cat:"Brakes",hours:1.5,upsells:["Brake fluid flush","Caliper service"]},
+{name:"Brake Fluid Flush",cat:"Brakes",hours:0.5,upsells:[]},
+{name:"Tire Mount & Balance (per tire)",cat:"Tires",hours:0.3,upsells:["Alignment","TPMS service"]},
+{name:"Tire Rotation",cat:"Tires",hours:0.3,upsells:["Alignment check","Tire pressure check"]},
+{name:"4-Wheel Alignment",cat:"Tires",hours:1.0,upsells:["Tie rod replacement","Suspension inspection"]},
+{name:"Flat Tire Repair / Plug",cat:"Tires",hours:0.5,upsells:["TPMS service"]},
+{name:"Spark Plug Replacement (4-cyl)",cat:"Engine",hours:1.0,upsells:["Ignition coils","Fuel system cleaning"]},
+{name:"Spark Plug Replacement (6-cyl)",cat:"Engine",hours:2.0,upsells:["Ignition coils","Fuel system cleaning"]},
+{name:"Timing Belt Replacement",cat:"Engine",hours:4.0,upsells:["Water pump","Tensioner kit"]},
+{name:"Serpentine Belt Replacement",cat:"Engine",hours:0.5,upsells:["Belt tensioner","Idler pulley"]},
+{name:"Water Pump Replacement",cat:"Cooling",hours:3.0,upsells:["Coolant flush","Thermostat"]},
+{name:"Radiator Replacement",cat:"Cooling",hours:2.0,upsells:["Coolant flush","Hoses"]},
+{name:"Coolant Flush",cat:"Cooling",hours:0.5,upsells:["Thermostat","Radiator cap"]},
+{name:"Thermostat Replacement",cat:"Cooling",hours:1.0,upsells:["Coolant flush"]},
+{name:"Strut Replacement — Front (pair)",cat:"Suspension",hours:2.5,upsells:["Alignment","Strut mounts"]},
+{name:"Strut Replacement — Rear (pair)",cat:"Suspension",hours:2.0,upsells:["Alignment"]},
+{name:"Ball Joint Replacement",cat:"Suspension",hours:1.5,upsells:["Alignment"]},
+{name:"Tie Rod End Replacement",cat:"Suspension",hours:1.0,upsells:["Alignment"]},
+{name:"Alternator Replacement",cat:"Electrical",hours:1.5,upsells:["Battery test","Belt inspection"]},
+{name:"Battery Replacement",cat:"Electrical",hours:0.3,upsells:["Terminal cleaning","Alternator test"]},
+{name:"Starter Replacement",cat:"Electrical",hours:2.0,upsells:["Battery test"]},
+{name:"Headlight Bulb Replacement",cat:"Electrical",hours:0.3,upsells:["Lens restoration"]},
+{name:"Transmission Fluid Change",cat:"Transmission",hours:1.0,upsells:["Filter replacement","Pan gasket"]},
+{name:"Clutch Replacement",cat:"Transmission",hours:5.0,upsells:["Flywheel resurface","Throw-out bearing"]},
+{name:"CV Axle Replacement",cat:"Transmission",hours:1.5,upsells:["Alignment"]},
+{name:"Exhaust Manifold Gasket",cat:"Exhaust",hours:2.0,upsells:["O2 sensor"]},
+{name:"Catalytic Converter Replacement",cat:"Exhaust",hours:1.5,upsells:["O2 sensors"]},
+{name:"Muffler Replacement",cat:"Exhaust",hours:1.0,upsells:["Exhaust hangers","Tail pipe"]},
+{name:"A/C Recharge",cat:"Maintenance",hours:0.5,upsells:["Cabin filter","Compressor inspection"]},
+{name:"Cabin Air Filter Replacement",cat:"Maintenance",hours:0.2,upsells:[]},
+{name:"Engine Air Filter Replacement",cat:"Maintenance",hours:0.1,upsells:[]},
+{name:"Power Steering Fluid Flush",cat:"Maintenance",hours:0.5,upsells:[]},
+{name:"Fuel Filter Replacement",cat:"Engine",hours:0.5,upsells:["Fuel system cleaning"]},
+{name:"Diagnostic Scan / Inspection",cat:"Maintenance",hours:1.0,upsells:[]}
+];
+
+const upsellCatalog={
+"Synthetic upgrade":{price:25,desc:"Upgrade to full synthetic oil"},"Air filter":{price:35,desc:"Engine air filter replacement"},
+"Cabin filter":{price:30,desc:"Cabin air filter replacement"},"Rotor resurface":{price:75,desc:"Per axle rotor resurfacing"},
+"Brake fluid flush":{price:89,desc:"Complete brake fluid exchange"},"Caliper service":{price:60,desc:"Clean and lubricate calipers"},
+"Alignment":{price:99,desc:"4-wheel computerized alignment"},"TPMS service":{price:40,desc:"Tire pressure monitoring reset"},
+"Alignment check":{price:0,desc:"Complimentary alignment check"},"Tire pressure check":{price:0,desc:"Check and adjust all tires"},
+"Tie rod replacement":{price:185,desc:"Per side, inner or outer"},"Suspension inspection":{price:0,desc:"Full suspension assessment"},
+"Ignition coils":{price:65,desc:"Per coil replacement"},"Fuel system cleaning":{price:120,desc:"Fuel injector cleaning service"},
+"Water pump":{price:280,desc:"Replace water pump with timing belt"},"Tensioner kit":{price:95,desc:"Belt tensioner and idler pulleys"},
+"Belt tensioner":{price:75,desc:"Automatic belt tensioner"},"Idler pulley":{price:45,desc:"Serpentine belt idler pulley"},
+"Coolant flush":{price:89,desc:"Complete cooling system flush"},"Thermostat":{price:65,desc:"Thermostat replacement"},
+"Hoses":{price:85,desc:"Upper & lower radiator hoses"},"Radiator cap":{price:15,desc:"Pressure cap replacement"},
+"Strut mounts":{price:120,desc:"Strut mount bearings (pair)"},"Battery test":{price:0,desc:"Load test battery condition"},
+"Belt inspection":{price:0,desc:"Inspect all drive belts"},"Terminal cleaning":{price:15,desc:"Clean battery terminals"},
+"Alternator test":{price:0,desc:"Test alternator output"},"Filter replacement":{price:45,desc:"Transmission filter"},
+"Pan gasket":{price:35,desc:"Transmission pan gasket"},"Flywheel resurface":{price:95,desc:"Resurface flywheel"},
+"Throw-out bearing":{price:45,desc:"Clutch release bearing"},"O2 sensor":{price:120,desc:"Oxygen sensor replacement"},
+"O2 sensors":{price:220,desc:"Upstream & downstream sensors"},"Exhaust hangers":{price:25,desc:"Replace rubber hangers"},
+"Tail pipe":{price:65,desc:"Tail pipe replacement"},"Lens restoration":{price:49,desc:"Headlight lens polish & seal"},
+"Compressor inspection":{price:0,desc:"A/C compressor assessment"}
+};
+
+let quoteLabor=[],quoteParts=[],selectedUpsells=new Set(),currentUpsellOptions=[];
+
+let quotes=[
+{id:"Q-2026-0042",date:"Feb 16",customer:"Sarah Johnson",vehicle:"2019 Honda Accord",svc:"Front Brakes + Rotors, Alignment",svcKo:"전면 브레이크 + 로터, 얼라인먼트",total:612.45,status:"pending"},
+{id:"Q-2026-0041",date:"Feb 15",customer:"Mike Thompson",vehicle:"2022 Ford F-150",svc:"4x Tire Mount & Balance, Alignment",svcKo:"타이어 장착 & 밸런스 4개, 얼라인먼트",total:498.20,status:"approved"},
+{id:"Q-2026-0040",date:"Feb 14",customer:"Lisa Chen",vehicle:"2020 Toyota RAV4",svc:"Oil Change, Cabin Filter, Rotate",svcKo:"오일 교환, 실내 필터, 로테이션",total:189.50,status:"paid"},
+{id:"Q-2026-0039",date:"Feb 13",customer:"David Martinez",vehicle:"2018 Chevy Silverado",svc:"Timing Belt, Water Pump",svcKo:"타이밍 벨트, 워터 펌프",total:1245.80,status:"approved"},
+{id:"Q-2026-0038",date:"Feb 12",customer:"Karen Williams",vehicle:"2021 BMW X3",svc:"Diagnostic, Spark Plugs",svcKo:"진단, 점화 플러그",total:385.00,status:"declined"},
+{id:"Q-2026-0037",date:"Feb 11",customer:"Tom Rivera",vehicle:"2017 Nissan Altima",svc:"Alternator Replacement",svcKo:"알터네이터 교체",total:520.35,status:"paid"}
+];
+
+// ===================== NAV =====================
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const m={dashboard:0,quotes:1,newquote:2,laborguide:3,customers:4};
+  document.querySelectorAll('.nav-item')[m[p]]?.classList.add('active');
+  if(p==='laborguide')renderLaborGuide();if(p==='newquote')refreshUpsells();
+}
+
+// ===================== QUOTES TABLE =====================
+function renderQuotes(){
+  const badge=s=>`<span class="badge badge-${s}">${st(s)}</span>`;
+  const act=q=>q.status==='approved'?`<button class="btn btn-success" style="font-size:11px;padding:5px 12px" onclick="openPaymentFor('${q.id}',${q.total})">${t('btnCollectShort')}</button>`:q.status==='pending'?`<button class="btn btn-secondary" style="font-size:11px;padding:5px 12px" onclick="approveQuote('${q.id}')">${t('btnApprove')}</button>`:'';
+  const sv=q=>currentLang==='ko'?(q.svcKo||q.svc):q.svc;
+  document.getElementById('dashboardQuotes').innerHTML=quotes.slice(0,5).map(q=>`<tr><td style="font-family:'Space Mono';font-weight:700;font-size:12px">${q.id}</td><td style="font-weight:600">${q.customer}</td><td style="color:var(--text-dim)">${q.vehicle}</td><td style="font-size:12px">${sv(q)}</td><td style="font-family:'Space Mono';font-weight:700">$${q.total.toFixed(2)}</td><td>${badge(q.status)}</td><td>${act(q)}</td></tr>`).join('');
+  document.getElementById('allQuotes').innerHTML=quotes.map(q=>`<tr><td style="font-family:'Space Mono';font-weight:700;font-size:12px">${q.id}</td><td style="color:var(--text-dim)">${q.date}</td><td style="font-weight:600">${q.customer}</td><td style="color:var(--text-dim)">${q.vehicle}</td><td style="font-size:12px">${sv(q)}</td><td style="font-family:'Space Mono';font-weight:700">$${q.total.toFixed(2)}</td><td>${badge(q.status)}</td><td>${act(q)}</td></tr>`).join('');
+}
+function approveQuote(id){const q=quotes.find(x=>x.id===id);if(q)q.status='approved';renderQuotes();showToast(t('tApproved'));}
+
+// ===================== LABOR LINES =====================
+function addLaborLine(name='',hours='',rate=LABOR_RATE){quoteLabor.push({id:Date.now()+Math.random(),name,hours:parseFloat(hours)||0,rate});renderLaborLines();recalc();}
+function removeLaborLine(id){quoteLabor=quoteLabor.filter(l=>l.id!==id);renderLaborLines();recalc();}
+function renderLaborLines(){
+  document.getElementById('laborLines').innerHTML=quoteLabor.map(l=>`<div class="line-item"><input class="form-input" value="${ln(l.name)}" placeholder="${t('colDesc')}" onchange="updateLabor(${l.id},'name',this.value)"><input class="form-input" type="number" step="0.1" value="${l.hours||''}" placeholder="0.0" onchange="updateLabor(${l.id},'hours',this.value)"><input class="form-input" type="number" value="${l.rate}" placeholder="135" onchange="updateLabor(${l.id},'rate',this.value)"><div style="font-family:'Space Mono';font-size:13px;font-weight:700;text-align:right">$${(l.hours*l.rate).toFixed(2)}</div><button class="remove-btn" onclick="removeLaborLine(${l.id})">×</button></div>`).join('');
+}
+function updateLabor(id,f,v){const l=quoteLabor.find(x=>x.id===id);if(!l)return;f==='name'?l.name=v:l[f]=parseFloat(v)||0;recalc();refreshUpsells();}
+
+// ===================== PARTS LINES =====================
+function addPartLine(name='',qty=1,price=''){quoteParts.push({id:Date.now()+Math.random(),name,qty:parseInt(qty)||1,price:parseFloat(price)||0});renderPartLines();recalc();}
+function removePartLine(id){quoteParts=quoteParts.filter(l=>l.id!==id);renderPartLines();recalc();}
+function renderPartLines(){
+  document.getElementById('partsLines').innerHTML=quoteParts.map(p=>`<div class="line-item"><input class="form-input" value="${p.name}" placeholder="${t('colPart')}" onchange="updatePart(${p.id},'name',this.value)"><input class="form-input" type="number" value="${p.qty}" placeholder="1" onchange="updatePart(${p.id},'qty',this.value)"><input class="form-input" type="number" step="0.01" value="${p.price||''}" placeholder="0.00" onchange="updatePart(${p.id},'price',this.value)"><div style="font-family:'Space Mono';font-size:13px;font-weight:700;text-align:right">$${(p.qty*p.price).toFixed(2)}</div><button class="remove-btn" onclick="removePartLine(${p.id})">×</button></div>`).join('');
+}
+function updatePart(id,f,v){const p=quoteParts.find(x=>x.id===id);if(!p)return;f==='name'?p.name=v:p[f]=parseFloat(v)||0;recalc();}
+
+// ===================== UPSELLS =====================
+function refreshUpsells(){
+  const ss=new Set();
+  quoteLabor.forEach(l=>{const m=laborGuide.find(g=>g.name.toLowerCase()===l.name.toLowerCase()||(LK[g.name]||'').toLowerCase()===l.name.toLowerCase());if(m)m.upsells.forEach(u=>ss.add(u));});
+  currentUpsellOptions=[...ss].filter(u=>upsellCatalog[u]);
+  if(!currentUpsellOptions.length)currentUpsellOptions=["Air filter","Cabin filter","Brake fluid flush","Alignment"];
+  document.getElementById('upsellContainer').innerHTML=`<p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${t('upsellHint')}</p>`+currentUpsellOptions.map(u=>{
+    const i=upsellCatalog[u];if(!i)return '';const sel=selectedUpsells.has(u)?'selected':'';
+    return `<div class="upsell-card ${sel}" onclick="toggleUpsell('${u}')"><div class="upsell-check"></div><div><div class="upsell-name">${un(u)}</div><div class="upsell-desc">${ud(u,i.desc)}</div><div class="upsell-price">${i.price===0?t('free'):'$'+i.price.toFixed(2)}</div></div></div>`;
+  }).join('');
+}
+function toggleUpsell(n){selectedUpsells.has(n)?selectedUpsells.delete(n):selectedUpsells.add(n);refreshUpsells();recalc();}
+
+// ===================== CALC =====================
+function recalc(){
+  const lt=quoteLabor.reduce((s,l)=>s+l.hours*l.rate,0),pt=quoteParts.reduce((s,p)=>s+p.qty*p.price,0);
+  const ut=[...selectedUpsells].reduce((s,u)=>s+(upsellCatalog[u]?.price||0),0);
+  const sub=lt+pt+ut,sup=sub*0.03,tax=(pt+ut)*0.0825,tot=sub+sup+tax;
+  document.getElementById('sumLabor').textContent='$'+lt.toFixed(2);
+  document.getElementById('sumParts').textContent='$'+pt.toFixed(2);
+  document.getElementById('sumUpsells').textContent='$'+ut.toFixed(2);
+  document.getElementById('sumSupplies').textContent='$'+sup.toFixed(2);
+  document.getElementById('sumTax').textContent='$'+tax.toFixed(2);
+  document.getElementById('sumTotal').textContent='$'+tot.toFixed(2);
+}
+
+// ===================== LABOR GUIDE =====================
+function renderLaborGuide(){
+  const sv=document.getElementById('laborSearchInput')?.value||'';
+  const cv=document.getElementById('laborCatFilter')?.value||'';
+  const list=laborGuide.filter(l=>{const sl=sv.toLowerCase();const mt=!sv||l.name.toLowerCase().includes(sl)||(LK[l.name]||'').toLowerCase().includes(sl);return mt&&(!cv||l.cat===cv);});
+  document.getElementById('laborGuideList').innerHTML=list.map(l=>`<div class="labor-item" onclick="addLaborFromGuideItem('${l.name.replace(/'/g,"\\'")}',${l.hours})"><div><div class="labor-item-name">${ln(l.name)}</div><div class="labor-item-cat">${cn(l.cat)}</div></div><div><div class="labor-item-hours">${l.hours} ${t('hrs')}</div><div class="labor-item-rate">$${(l.hours*LABOR_RATE).toFixed(2)} @ $${LABOR_RATE}/${t('hrs')}</div></div></div>`).join('');
+}
+function filterLaborGuide(){renderLaborGuide();}
+
+// ===================== LABOR MODAL =====================
+function addLaborFromGuide(){document.getElementById('laborModal').classList.add('active');renderModalLabor();}
+function closeLaborModal(){document.getElementById('laborModal').classList.remove('active');}
+function renderModalLabor(f=''){
+  const list=laborGuide.filter(l=>!f||(l.name.toLowerCase().includes(f.toLowerCase())||(LK[l.name]||'').toLowerCase().includes(f.toLowerCase())));
+  document.getElementById('modalLaborList').innerHTML=list.map(l=>`<div class="labor-item" onclick="selectLaborFromModal('${l.name.replace(/'/g,"\\'")}',${l.hours})"><div><div class="labor-item-name">${ln(l.name)}</div><div class="labor-item-cat">${cn(l.cat)}</div></div><div><div class="labor-item-hours">${l.hours} ${t('hrs')}</div><div class="labor-item-rate">$${(l.hours*LABOR_RATE).toFixed(2)}</div></div></div>`).join('');
+}
+function filterModalLabor(){renderModalLabor(document.getElementById('modalLaborSearch').value);}
+function selectLaborFromModal(n,h){addLaborLine(n,h,LABOR_RATE);closeLaborModal();refreshUpsells();showToast(t('tAdded',{n:ln(n)}));}
+function addLaborFromGuideItem(n,h){addLaborLine(n,h,LABOR_RATE);showPage('newquote');refreshUpsells();showToast(t('tAddedQ',{n:ln(n)}));}
+
+// ===================== SAVE =====================
+function saveQuote(){
+  const nm=document.getElementById('custName').value||t('walkin');
+  const vh=`${document.getElementById('vehYear').value||'----'} ${document.getElementById('vehMake').value||'---'} ${document.getElementById('vehModel').value||'---'}`;
+  const svc=quoteLabor.map(l=>l.name).filter(Boolean).join(', ')||t('genSvc');
+  const svcKo=quoteLabor.map(l=>ln(l.name)).filter(Boolean).join(', ')||'일반 서비스';
+  const lt=quoteLabor.reduce((s,l)=>s+l.hours*l.rate,0),pt=quoteParts.reduce((s,p)=>s+p.qty*p.price,0);
+  const ut=[...selectedUpsells].reduce((s,u)=>s+(upsellCatalog[u]?.price||0),0);
+  const sub=lt+pt+ut,tot=sub+sub*0.03+(pt+ut)*0.0825;
+  const nid=`Q-2026-${String(43+quotes.length).padStart(4,'0')}`;
+  quotes.unshift({id:nid,date:'Feb 16',customer:nm,vehicle:vh.trim(),svc,svcKo,total:tot,status:'pending'});
+  renderQuotes();showToast(t('tSaved',{id:nid}));showPage('quotes');
+  quoteLabor=[];quoteParts=[];selectedUpsells.clear();renderLaborLines();renderPartLines();recalc();
+  document.querySelectorAll('#page-newquote .form-input,#page-newquote .form-textarea').forEach(i=>i.value='');
+}
+
+// ===================== PAYMENT =====================
+function openPayment(){document.getElementById('paymentAmount').textContent=document.getElementById('sumTotal').textContent;document.getElementById('paymentModal').classList.add('active');}
+function openPaymentFor(id,amt){document.getElementById('paymentAmount').textContent='$'+amt.toFixed(2);document.getElementById('paymentModal').classList.add('active');document.getElementById('paymentModal').dataset.quoteId=id;}
+function closePayment(){document.getElementById('paymentModal').classList.remove('active');}
+function selectPayment(el){document.querySelectorAll('.payment-method').forEach(m=>m.classList.remove('selected'));el.classList.add('selected');}
+function processPayment(){const qid=document.getElementById('paymentModal').dataset.quoteId;if(qid){const q=quotes.find(x=>x.id===qid);if(q)q.status='paid';}closePayment();renderQuotes();showToast(t('tPay'));delete document.getElementById('paymentModal').dataset.quoteId;}
+
+// ===================== TOAST =====================
+function showToast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3000);}
+
+// ===================== INIT =====================
+setLang('en');
+</script>
+</body>
+</html>
